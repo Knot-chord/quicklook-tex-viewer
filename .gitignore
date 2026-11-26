@@ -1,0 +1,24 @@
+# 构建中间产物
+.build/
+bin/
+obj/
+
+# 前端依赖（构建时从 MarkdownViewer.dll 提取，可随时重建）
+src/web/vendor/*.js
+
+# 参考用的上游源码（浅克隆，不参与发布）
+../_research/
+
+# 系统 / 编辑器
+Thumbs.db
+desktop.ini
+.vs/
+*.user
+
+# 第三方测试样例（许可各异，不入库；用 src\tools\fetch-web-tex*.ps1 抓取）
+samples/real/
+samples/web2/
+samples/web2b/
+# 发布目录（只保留 .qlplugin 安装包）
+release/QuickLook.Plugin.TeXViewer/
+release/*.dll

@@ -1,0 +1,910 @@
+/* ------------------------------------------------------------------
+ * style.css — LaTeX 预览界面样式
+ * 亮/暗双主题，document 区用衬线，界面用小字号无衬线。
+ * ------------------------------------------------------------------ */
+
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f6f7f9;
+  --bg-side: #fafbfc;
+  --fg: #1f2328;
+  --fg-dim: #57606a;
+  --fg-faint: #8b949e;
+  --line: #e3e6ea;
+  --accent: #1f6feb;
+  --accent-soft: rgba(31, 111, 235, 0.10);
+  --code-bg: #f3f4f6;
+  --math-bg: transparent;
+  --th-bg: #f2f4f7;
+  --warn: #9a6700;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] {
+  --bg: #1e1e20;
+  --bg-soft: #26262a;
+  --bg-side: #232326;
+  --fg: #e6e6e8;
+  --fg-dim: #a9b0b8;
+  --fg-faint: #7d858e;
+  --line: #33343a;
+  --accent: #58a6ff;
+  --accent-soft: rgba(88, 166, 255, 0.14);
+  --code-bg: #2b2c31;
+  --th-bg: #2a2b30;
+  --warn: #d29922;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+* { box-sizing: border-box; }
+
+/* hidden 属性必须压过下面按 id/class 给出的 display 值 */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------- 工具栏 ---------------- */
+
+#toolbar {
+  flex: 0 0 auto;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--line);
+  user-select: none;
+}
+
+#toolbar-left, #toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#toolbar-right { margin-left: auto; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--fg-dim);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover { background: var(--accent-soft); color: var(--fg); }
+.btn.active { background: var(--accent-soft); color: var(--accent); border-color: var(--line); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+.icon-btn { width: 28px; padding: 0; }
+.icon { width: 16px; height: 16px; display: block; }
+
+#title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fg-dim);
+  padding: 0 6px;
+}
+
+#stats {
+  font-size: 11.5px;
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#warn-btn {
+  color: var(--warn);
+  border-color: var(--line);
+  font-size: 11.5px;
+}
+
+/* ---------------- 主体 ---------------- */
+
+#main {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  position: relative;
+}
+
+#sidebar {
+  flex: 0 0 232px;
+  width: 232px;
+  background: var(--bg-side);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transition: margin-left 0.15s ease;
+}
+
+body.toc-hidden #sidebar { margin-left: -232px; }
+
+#toc-header {
+  flex: 0 0 auto;
+  padding: 9px 12px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+#toc {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 0 6px 12px;
+}
+
+#toc-empty {
+  padding: 4px 12px;
+  color: var(--fg-faint);
+  font-size: 12px;
+}
+
+.toc-item {
+  display: flex;
+  gap: 6px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  color: var(--fg-dim);
+  text-decoration: none;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow: hidden;
+}
+
+.toc-item:hover { background: var(--accent-soft); color: var(--fg); }
+.toc-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.toc-item.lvl2 { padding-left: 8px; font-weight: 600; color: var(--fg); }
+.toc-item.lvl3 { padding-left: 18px; }
+.toc-item.lvl4 { padding-left: 30px; font-size: 11.5px; }
+.toc-item.lvl5, .toc-item.lvl6, .toc-item.lvl7 { padding-left: 40px; font-size: 11.5px; color: var(--fg-faint); }
+.toc-no { color: var(--fg-faint); font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+.toc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 正文区 */
+
+#view-preview {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+
+
+article.latex-doc {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 34px 46px 90px;
+  font-family: 'Cambria', 'Latin Modern Roman', 'Georgia', 'Times New Roman',
+    'Songti SC', 'SimSun', serif;
+  font-size: 15.5px;
+  line-height: 1.78;
+  color: var(--fg);
+  overflow-wrap: break-word;
+}
+
+.host article.latex-doc { padding-top: 26px; }
+
+/* ---------------- 文档内部排版 ---------------- */
+
+.doc-title {
+  text-align: center;
+  margin: 8px 0 30px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+
+.doc-title .t { font-size: 1.72em; font-weight: 700; line-height: 1.3; }
+.doc-title .a { margin-top: 12px; font-size: 1.02em; color: var(--fg-dim); }
+.doc-title .d { margin-top: 6px; font-size: 0.92em; color: var(--fg-faint); }
+
+.latex-doc p { margin: 0 0 0.85em; }
+
+.latex-doc .heading {
+  font-family: 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
+  line-height: 1.42;
+  margin: 1.55em 0 0.6em;
+  scroll-margin-top: 12px;
+}
+
+.latex-doc h1.heading { font-size: 1.42em; font-weight: 700; }
+.latex-doc h2.heading { font-size: 1.18em; font-weight: 700; }
+.latex-doc h3.heading { font-size: 1.06em; font-weight: 600; }
+.latex-doc h4.heading, .latex-doc h5.heading { font-size: 0.98em; font-weight: 600; color: var(--fg-dim); }
+
+.secno {
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.55em;
+  font-weight: 600;
+}
+
+.latex-doc ul.list, .latex-doc ol.list { margin: 0 0 0.9em; padding-left: 1.6em; }
+.latex-doc ul.list > li, .latex-doc ol.list > li { margin: 0.22em 0; }
+.latex-doc ul.list ul.list { margin-top: 0.22em; }
+
+.latex-doc dl.desc { margin: 0 0 0.9em; }
+.latex-doc dl.desc dt { font-weight: 700; margin-top: 0.55em; }
+.latex-doc dl.desc dd { margin: 0.15em 0 0 1.4em; }
+
+.latex-doc .thmbox {
+  margin: 1em 0;
+  padding: 0;
+}
+
+.latex-doc .thm-head { font-weight: 700; margin-bottom: 0.15em; }
+.latex-doc .thmbox .qed { float: right; margin-top: 0.15em; }
+.latex-doc .thmbox .thm-head { display: inline; }
+.latex-doc .thmbox > p:first-of-type { display: inline; }
+.latex-doc .thmbox.env-proof .thm-head { font-style: italic; font-weight: 400; }
+.latex-doc .thm-title { font-weight: 400; color: var(--fg-dim); }
+.latex-doc .thmbox p:last-child { margin-bottom: 0; }
+
+.latex-doc .env-block {
+  margin: 0.9em 0;
+}
+
+.latex-doc .env-quote, .latex-doc .env-quotation {
+  border-left: 3px solid var(--line);
+  padding-left: 14px;
+  color: var(--fg-dim);
+  font-style: italic;
+}
+
+.latex-doc .env-center { text-align: center; }
+.latex-doc .env-flushright { text-align: right; }
+.latex-doc .env-abstract { border: 1px solid var(--line); border-radius: 6px; padding: 6px 16px; }
+.latex-doc .abstract-head { font-weight: 700; text-align: center; margin-bottom: 0.4em; }
+
+pre.code, 
+
+code.tt, .tt {
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.92em;
+  background: var(--code-bg);
+  border-radius: 3px;
+  padding: 0.06em 0.32em;
+}
+
+.sans { font-family: 'Segoe UI', 'Microsoft YaHei UI', sans-serif; }
+.serif { font-family: inherit; }
+.smallcaps { font-variant: all-small-caps; letter-spacing: 0.03em; }
+
+.tex-logo { font-variant: small-caps; letter-spacing: 0.04em; }
+.tex-logo sub { font-size: 0.65em; vertical-align: -0.22em; }
+
+a.ext { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+a.ext:hover { border-bottom-color: var(--accent); }
+
+.cite, .xref { color: var(--accent); cursor: help; }
+.float-no { font-weight: 600; margin-right: 2px; }
+.anchor { display: none; }
+
+/* 公式 */
+
+.math-display, .math.math-display {
+  display: block;
+  margin: 1.05em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+  padding: 2px 0;
+}
+
+.math-inline { white-space: nowrap; }
+
+.math mjx-container[jax='SVG'] { max-width: 100%; }
+.math-display mjx-container[jax='SVG'] { margin: 0 auto !important; }
+
+/* 表格 */
+
+.table-wrap { overflow-x: auto; margin: 1em 0; }
+
+table.tabular {
+  border-collapse: collapse;
+  margin: 0 auto;
+  font-size: 0.94em;
+  min-width: 40%;
+}
+
+table.tabular th, table.tabular td {
+  border: 1px solid var(--line);
+  padding: 5px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+table.tabular thead th { background: var(--th-bg); font-weight: 600; }
+
+/* 图 */
+
+figure.float {
+  margin: 1.1em 0;
+  text-align: center;
+}
+
+figure.float img.fig {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+figure.float figcaption {
+  margin-top: 0.45em;
+  font-size: 0.9em;
+  color: var(--fg-dim);
+  text-align: center;
+}
+
+.img-missing {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 5px;
+  color: var(--fg-faint);
+  font-size: 0.88em;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* 脚注 */
+
+hr.fn-sep {
+  margin: 2em 0 0.8em;
+  border: 0;
+  border-top: 1px solid var(--line);
+  width: 34%;
+  margin-left: 0;
+}
+
+.footnotes { font-size: 0.86em; color: var(--fg-dim); }
+.footnotes .fn { margin: 0.35em 0; }
+.fnref a { color: var(--accent); text-decoration: none; }
+
+/* 源码视图 */
+
+
+
+/* 空状态 / 拖放 */
+
+#drop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  z-index: 5;
+}
+
+#drop.hover { background: var(--bg-soft); }
+
+#drop .inner {
+  text-align: center;
+  color: var(--fg-dim);
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  padding: 34px 46px;
+}
+
+#drop .primary { font-size: 15px; color: var(--fg); margin: 0 0 6px; }
+#drop .secondary { font-size: 12.5px; margin: 0 0 14px; }
+
+#drop label.pick {
+  display: inline-block;
+  padding: 7px 16px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+body.host #drop { display: none; }
+
+.empty {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--fg-faint);
+}
+
+/* toast */
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  max-width: 78%;
+  padding: 7px 14px;
+  border-radius: 7px;
+  background: rgba(20, 22, 26, 0.92);
+  color: #f2f2f2;
+  font-size: 12.5px;
+  box-shadow: var(--shadow);
+  z-index: 50;
+  pointer-events: none;
+}
+
+/* 滚动条 */
+
+#view-preview::-webkit-scrollbar, #toc::-webkit-scrollbar,
+::-webkit-scrollbar, pre.code::-webkit-scrollbar,
+.table-wrap::-webkit-scrollbar, .math-display::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+#view-preview::-webkit-scrollbar-thumb, #toc::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb, pre.code::-webkit-scrollbar-thumb,
+.table-wrap::-webkit-scrollbar-thumb, .math-display::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+#view-preview::-webkit-scrollbar-thumb:hover, #toc::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-faint);
+  background-clip: content-box;
+}
+
+@media (max-width: 720px) {
+  #sidebar { display: none; }
+  article.latex-doc { padding: 22px 18px 70px; font-size: 15px; }
+}
+
+/* ---------- 载入进度条（超过 3 秒才出现） ---------- */
+#progress {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  color: var(--fg-dim);
+  z-index: 60;
+}
+
+#progress .pbar {
+  position: relative;
+  width: 180px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+#progress .pbar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+#progress .ppct { font-variant-numeric: tabular-nums; min-width: 3.2em; text-align: right; }
+
+/* ---------- 页内对话框（替代 alert） ---------- */
+#dlg {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.38);
+  z-index: 70;
+}
+
+#dlg .dlg-card {
+  width: min(560px, 86vw);
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+#dlg .dlg-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 16px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+#dlg .dlg-head span { flex: 1 1 auto; }
+
+#dlg .dlg-body {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+#dlg .dlg-gtitle { font-weight: 600; margin: 8px 0 4px; color: var(--fg); }
+#dlg .dlg-body ul { margin: 0 0 8px; padding-left: 18px; color: var(--fg-dim); }
+#dlg .dlg-body li { margin: 2px 0; word-break: break-all; }
+
+#dlg .dlg-foot {
+  padding: 8px 16px;
+  border-top: 1px solid var(--line);
+  color: var(--fg-faint);
+  font-size: 11.5px;
+  background: var(--bg-soft);
+}
+
+/* 公式排版失败：标出来并附原始 TeX，避免"到底渲染没渲染"靠猜 */
+/* 渲染失败的公式：明确标记（虚框 + 底色 + ⚠），一眼能和正文区分 */
+.math-failed {
+  display: inline-block;
+  margin: 2px 2px;
+  padding: 1px 7px 1px 5px;
+  border: 1px dashed rgba(217, 83, 79, 0.75);
+  border-radius: 4px;
+  background: rgba(217, 83, 79, 0.10);
+  vertical-align: baseline;
+}
+.math-failed.math-display { display: block; margin: 10px 0; padding: 6px 10px; text-align: left; }
+.math-failed::before {
+  content: "⚠ ";
+  color: #d9534f;
+  font-family: inherit;
+}
+.formula-src {
+  font-family: ui-monospace, Consolas, "Cascadia Mono", monospace;
+  font-size: 0.9em;
+  opacity: 0.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 折叠的图形源码 */
+.tex-details {
+  margin: 8px 0 12px;
+  padding: 4px 10px;
+  border: 1px dashed var(--note-border, #6b7280);
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+.tex-details > summary { cursor: pointer; opacity: 0.8; outline: none; }
+.tex-details > summary::before { content: "▸ "; }
+.tex-details[open] > summary::before { content: "▾ "; }
+.tex-details .tex-note-src { margin-top: 6px; }
+
+/* 内联小标记（不占整行） */
+.tex-chip {
+  display: inline-block;
+  padding: 0 6px;
+  margin: 0 2px;
+  border: 1px dashed #b08d2e;
+  border-radius: 3px;
+  background: rgba(176, 141, 46, 0.12);
+  font-size: 0.85em;
+}
+.tex-chip::before { content: "⚠ "; }
+
+/* 代码环境的弱提示 */
+.tex-hint { margin: 2px 0 4px; font-size: 0.85em; opacity: 0.6; }
+.math-failed .math-src {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78em;
+  opacity: 0.75;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+/* ---- 分组样式：{\bfseries ..} {\huge ..} {\color{red} ..} 真正生效 ---- */
+.fw { font-weight: 700; }
+.it { font-style: italic; }
+.sc { font-variant: small-caps; letter-spacing: 0.02em; }
+.tt { font-family: ui-monospace, Consolas, "Cascadia Mono", monospace; }
+.sf { font-family: "Segoe UI", system-ui, sans-serif; }
+.sz-tiny    { font-size: 0.62em; }
+.sz-script  { font-size: 0.70em; }
+.sz-foot    { font-size: 0.78em; }
+.sz-small   { font-size: 0.88em; }
+.sz-large   { font-size: 1.12em; }
+.sz-large2  { font-size: 1.25em; }
+.sz-large3  { font-size: 1.44em; }
+.sz-huge    { font-size: 1.72em; }
+.sz-huge2   { font-size: 2.0em;  }
+.sz-smaller { font-size: 0.9em;  }
+.sz-larger  { font-size: 1.1em;  }
+
+/* 外链在预览里不可点（避免把预览页导航走），但保留 URL 提示 */
+a.ext { color: var(--link, #4a90d9); text-decoration: none; border-bottom: 1px dotted currentColor; cursor: default; }
+/* ---------------------------------------------------------------- */
+/* 注释块：所有“插件加的说明”都用这一套，和正文严格区分               */
+/* ---------------------------------------------------------------- */
+
+
+.tex-note-src {
+  margin: 0;
+  padding: 6px 8px;
+  max-height: 12em;
+  overflow: auto;
+  background: var(--note-src-bg, rgba(0, 0, 0, 0.18));
+  border-radius: 3px;
+  font-family: ui-monospace, Consolas, "Cascadia Mono", monospace;
+  font-size: 0.92em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+.tex-note-code { border-color: #4a7fb5; border-left-color: #4a7fb5; }
+/* 公式失败原因（比“失败”两个字更有信息） */
+.formula-reason { display: block; font-size: 0.85em; opacity: 0.85; margin-bottom: 2px; }
+
+
+.sidenote-mark {
+  display: block;
+  font-size: 0.78em;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+  margin-bottom: 0.2em;
+}
+@media (max-width: 720px) {
+  aside.sidenote { float: none; width: auto; margin: 0.6em 0; }
+}
+
+/* tufte 类文档：正文列收窄，页边注进入右侧栏（参考 tufte-css 的排版模型） */
+
+
+/* tufte 类文档：标题整宽两列（标题 | 页边注释），正文列收窄 */
+
+/* tufte：摘要不加框，按类文档原有版式（小标题 + 缩进正文） */
+
+/* ===== 版式配置（profile）：只改参数，不改结构 ===== */
+.latex-doc .doc-layout {
+  --par-indent: 1.5em;      /* LaTeX 正文首行缩进（parindent） */
+  --par-gap: 0em;           /* article 默认段距 0，靠缩进区分 */
+  --justify: justify;
+  --text-width: 100%;
+  --title-cols: 1fr;
+  --notes-col: 1;
+  --title-align: center;
+  --title-style: normal;
+  --title-weight: 700;
+  --title-size: 1.72em;
+  --abstract-border: 1px solid var(--line);
+  --abstract-head-align: center;
+  --note-width: 32%;
+  --note-push: 0%;
+  --note-rule: 2px solid var(--note-border, #6b7280);
+  --figure-push: 0%;
+  position: relative;
+}
+.latex-doc .doc-layout[data-profile="tufte"] {
+  --par-indent: 0em;
+  --par-gap: 0.9em;
+  --text-width: 70%;
+  --title-cols: 72% 1fr;
+  --notes-col: 2;
+  --title-align: left;
+  --title-style: italic;
+  --title-weight: 400;
+  --title-size: 1.32em;
+  --abstract-border: 0;
+  --abstract-head-align: left;
+  --note-width: 36%;
+  --note-push: 0%;
+  --note-rule: 1px solid var(--line);
+  --figure-push: 0%;
+}
+.latex-doc .doc-layout .doc-main { width: var(--text-width); }
+.latex-doc .doc-layout .doc-title {
+  display: grid;
+  grid-template-columns: var(--title-cols);
+  gap: 2em;
+  align-items: start;
+  text-align: var(--title-align);
+}
+.latex-doc .doc-layout .doc-title .title-main { min-width: 0; }
+.latex-doc .doc-layout .doc-title .t {
+  font-style: var(--title-style);
+  font-weight: var(--title-weight);
+  font-size: var(--title-size);
+}
+.latex-doc .doc-layout .doc-title .a,
+.latex-doc .doc-layout .doc-title .d { font-style: var(--title-style); }
+.latex-doc .doc-layout .doc-title .doc-thanks {
+  grid-column: var(--notes-col);
+  width: auto;
+  min-width: 0;
+  text-align: left;
+  font-size: 0.82em;
+  color: var(--fg-dim);
+}
+.latex-doc .doc-layout .doc-title .doc-thanks .sidenote {
+  float: none;
+  clear: none;
+  width: auto;
+  margin: 0;
+  padding-left: 0.6em;
+  border-left: var(--note-rule);
+}
+.latex-doc .doc-layout aside.sidenote {
+  float: right;
+  clear: right;
+  width: var(--note-width);
+  margin: 0 var(--note-push) 0.9em 0;
+  padding: 0 0 0 0.7em;
+  font-size: 0.82em;
+  border-left: var(--note-rule);
+}
+.latex-doc .doc-layout .env-abstract { border: var(--abstract-border); }
+.latex-doc .doc-layout .env-abstract .abstract-head { text-align: var(--abstract-head-align); }
+.latex-doc .doc-layout[data-profile="tufte"] .env-abstract .abstract-head {
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+.latex-doc .doc-layout figure { margin-right: var(--figure-push); }
+
+
+/* tufte 页边栏：正文 70% + 右侧独立栏，注释放进栏内按锚点垂直定位（app.js 负责） */
+.latex-doc .doc-layout[data-profile="tufte"] { position: relative; }
+.latex-doc .doc-layout[data-profile="tufte"] .margin-notes {
+  position: absolute;
+  top: 0;
+  left: 72%;
+  width: 26%;
+}
+.latex-doc .doc-layout[data-profile="tufte"] .margin-notes aside.sidenote {
+  position: absolute;
+  left: 0;
+  right: 0;
+  float: none;
+  clear: none;
+  width: auto;
+  margin: 0;
+  padding: 0 0 0 0.7em;
+  font-size: 0.82em;
+  border-left: var(--note-rule);
+}
+.latex-doc .doc-layout[data-profile="tufte"] .note-anchor {
+  display: inline;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+
+/* tufte：正文锚点不占空间；页边注栏按锚点定位（CSS 原生，JS 只做回退） */
+.latex-doc .note-ref {
+  display: inline;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.latex-doc .doc-layout[data-profile="tufte"] .margin-notes {
+  position: absolute;
+  top: 0;
+  left: 72%;
+  width: 26%;
+}
+.latex-doc .doc-layout[data-profile="tufte"] .margin-notes aside.sidenote {
+  position: absolute;
+  left: 0;
+  right: 0;
+  float: none;
+  clear: none;
+  width: auto;
+  margin: 0;
+  padding: 0 0 0 0.7em;
+  font-size: 0.82em;
+  border-left: var(--note-rule);
+}
+
+.latex-doc .doc-layout[data-profile="cjk"] { --par-indent: 2em; --par-gap: 0em; }
+.latex-doc .doc-layout[data-profile="beamer"] { --par-indent: 0em; --par-gap: 0.7em; }
+
+
+/* ===== 排版：LaTeX 语义（两端对齐、段落缩进、标题、脚注、表格） ===== */
+.latex-doc .doc-layout .doc-main {
+  text-align: var(--justify, left);
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+/* 顶层段落：默认无段距；连续段落首行缩进（LaTeX 的 \parindent） */
+.latex-doc .doc-layout .doc-main > p {
+  margin: 0 0 var(--par-gap, 0.85em);
+  text-indent: 0;
+}
+.latex-doc .doc-layout .doc-main > p + p {
+  text-indent: var(--par-indent, 0);
+  margin-top: 0;
+}
+/* 块级环境之后恢复一点间距，避免表格/图紧贴下一段 */
+.latex-doc .doc-layout .doc-main > .env-block + p,
+.latex-doc .doc-layout .doc-main > figure + p,
+.latex-doc .doc-layout .doc-main > .table-wrap + p,
+.latex-doc .doc-layout .doc-main > pre + p,
+.latex-doc .doc-layout .doc-main > .math-display + p {
+  margin-top: 0.9em;
+}
+/* 列表内段落不缩进、不两端对齐 */
+.latex-doc .doc-layout li p {
+  text-indent: 0;
+  text-align: left;
+  margin: 0.15em 0;
+}
+/* 标题层级：章节居中，section 加粗放大，间距接近 LaTeX */
+.latex-doc .doc-layout .heading.h1 { font-size: 1.55em; text-align: center; margin: 1.8em 0 0.9em; }
+.latex-doc .doc-layout .heading.h2 { font-size: 1.3em; margin: 1.7em 0 0.6em; }
+.latex-doc .doc-layout .heading.h3 { font-size: 1.15em; margin: 1.4em 0 0.5em; }
+.latex-doc .doc-layout .heading.h4 { font-size: 1.05em; margin: 1.2em 0 0.4em; }
+.latex-doc .doc-layout .heading.h5 { font-size: 1em; margin: 1em 0 0.35em; }
+.latex-doc .doc-layout .heading .secno { margin-right: 0.5em; color: inherit; font-weight: inherit; }
+/* 脚注：短横线左对齐（LaTeX \footnotesep 规则线） */
+.latex-doc .doc-layout hr.fn-sep {
+  width: 35%;
+  margin: 2em 0 0.8em;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+/* 表格：去掉竖线，只保留上下边和表头线（booktabs 观感） */
+.latex-doc .doc-layout table.tabular th,
+.latex-doc .doc-layout table.tabular td {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 4px 10px;
+}
+.latex-doc .doc-layout table.tabular {
+  border-top: 1.5px solid var(--fg-dim);
+  border-bottom: 1.5px solid var(--fg-dim);
+}
+.latex-doc .doc-layout table.tabular thead th {
+  background: transparent;
+  border-bottom: 1px solid var(--fg-dim);
+}

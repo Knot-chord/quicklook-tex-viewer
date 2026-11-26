@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>LaTeX 预览</title>
+
+  <!-- 主题预置：避免首帧闪白/闪黑 -->
+  <script>
+    (function () {
+      try {
+        // 主题只来自宿主（QuickLook context.Theme）；None → 跟随系统
+        var q = new URLSearchParams(location.search).get('theme');
+        var pref = (q === 'light' || q === 'dark') ? q : 'auto';
+        var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.themePref = pref;
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header id="toolbar">
+    <div id="toolbar-left">
+      <button id="btn-toc" class="btn icon-btn" type="button" title="显示/隐藏目录（Tab）" aria-label="目录">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 6h16M4 12h11M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+      </div>
+
+    <span id="title">LaTeX 预览</span>
+
+    <div id="toolbar-right">
+      <span id="stats"></span>
+      <button id="warn-btn" class="btn" type="button" hidden></button>
+    </div>
+  </header>
+
+  <main id="main">
+    <aside id="sidebar">
+      <div id="toc-header">目录</div>
+      <div id="toc-empty" hidden>本文档没有标题</div>
+      <div id="toc"></div>
+    </aside>
+
+    <section id="view-preview">
+      <div id="doc"></div>
+    </section>
+
+    <div id="drop">
+      <div class="inner">
+        <p class="primary">拖入 <strong>.tex</strong> 文件预览</p>
+        <p class="secondary">或</p>
+        <label class="pick" for="file-input">选择文件…</label>
+      </div>
+    </div>
+  </main>
+
+  <!-- 降级详情：页面内面板，不用 alert()（WebView2 会用原生对话框显示，标题是站点名，很突兀） -->
+  <div id="dlg" hidden>
+    <div class="dlg-card" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+      <div class="dlg-head">
+        <span id="dlg-title">已知不支持的内容</span>
+        <button id="dlg-close" class="btn icon-btn" type="button" aria-label="关闭">✕</button>
+      </div>
+      <div class="dlg-body" id="dlg-body"></div>
+      <div class="dlg-foot">正文仍然可读；这些条目只影响样式还原。</div>
+    </div>
+  </div>
+
+  <div id="progress" hidden>
+    <span class="ptext">公式排版中</span>
+    <span class="pbar"><i id="pbar-fill"></i></span>
+    <span class="ppct" id="ppct">0%</span>
+  </div>
+
+  <input id="file-input" type="file" accept=".tex,.latex,.ltx,.sty,.cls,.bib,.txt" hidden />
+  <div id="toast" hidden></div>
+
+  <!-- MathJax 配置：只认 \( \) 与 \[ \]，避免正文里的 $ 被误判 -->
+  <script>
+    window.MathJax = {
+      // 离线宿主：没有 input/tex/extensions/*.js，禁止按需加载，否则每次预览都会 404
+      loader: { load: [] },
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true,
+        tags: 'none',
+        // 去掉 autoload：它会按需拉取 extensions/*.js，离线宿主没有这些文件
+        packages: { '[-]': ['autoload'], '[+]': ['ams', 'newcommand', 'configmacros', 'noundefined'] }
+      },
+      // 必须 local：global 会把字形放进 body 级隐藏 svg，导致缓存出来的公式缺字形
+      svg: { fontCache: 'local', scale: 1.0, mtextInheritFont: true },
+      options: {
+        enableMenu: false,
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        renderActions: { addMenu: [] }
+      },
+      startup: { typeset: false }
+    };
+  </script>
+  <!-- MathJax 改为按需注入（见 app.js ensureMathJax）：
+       文本先可见，公式随后补上；纯文本文档完全不加载这 2 MB -->
+
+  <script src="tex-vocab.js"></script>
+<script src="tex-renderer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

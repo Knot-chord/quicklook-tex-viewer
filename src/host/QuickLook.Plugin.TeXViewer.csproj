@@ -1,0 +1,93 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    QuickLook.Plugin.TeXViewer
+    目标框架 net472：QuickLook 4.5 (Store) 运行在 .NET Framework 4.8
+    运行时之上，net472 程序集可直接加载；本机未装 net462 目标包，
+    因此取已验证可用的最低目标 v4.7.2。
+    QuickLook.Common 由宿主程序目录提供（Private=false，不随插件分发）。
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <OutputType>Library</OutputType>
+    <RootNamespace>QuickLook.Plugin.TeXViewer</RootNamespace>
+    <AssemblyName>QuickLook.Plugin.TeXViewer</AssemblyName>
+    <LangVersion>7.3</LangVersion>
+    <Version>1.0.0</Version>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Deterministic>true</Deterministic>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <NoWarn>NU1701;CS1591</NoWarn>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 必须与 QuickLook 4.5.0.0 自带的 WebView2 完全同版本（1.0.3912.50），
+         否则同一进程里会出现两套 WebView2 托管程序集 -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3912.50" />
+  </ItemGroup>
+
+  <!-- Windows 自带的 PDF 渲染（Windows.Data.Pdf）：把 PDF 插图首页转 PNG 内联。
+       SDK 不存在时不定义 WINRT_PDF，代码自动降级为“不渲染 PDF 图”，构建不受影响。
+       引用均 Private=false：运行期用系统自带实现，不增加插件体积。 -->
+  <PropertyGroup>
+    <UnionMetadataDir Condition="'$(UnionMetadataDir)'==''">C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0</UnionMetadataDir>
+    <WinmdPath Condition="'$(WinmdPath)'==''">$(UnionMetadataDir)\Windows.winmd</WinmdPath>
+    <FacadesDir Condition="'$(FacadesDir)'==''">C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades</FacadesDir>
+    <WindowsRuntimeDll>$(WINDIR)\Microsoft.NET\assembly\GAC_MSIL\System.Runtime.WindowsRuntime\v4.0_4.0.0.0__b77a5c561934e089\System.Runtime.WindowsRuntime.dll</WindowsRuntimeDll>
+    <DefineConstants Condition="Exists('$(WinmdPath)')">$(DefineConstants);WINRT_PDF</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(WinmdPath)')">
+    <Reference Include="Windows">
+      <HintPath>$(WinmdPath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Runtime">
+      <HintPath>$(FacadesDir)\System.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Runtime.WindowsRuntime">
+      <HintPath>$(WindowsRuntimeDll)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 编译缓存用 JavaScriptSerializer 解析页面回传的分块消息 -->
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="QuickLook.Common">
+      <HintPath>$(QuickLookDir)\QuickLook.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- 复用官方 WebpagePanel；运行期由 Plugin.Init 的 AssemblyResolve 从安装目录加载，
+         不随插件分发（Private=false） -->
+    <Reference Include="QuickLook.Plugin.HtmlViewer">
+      <HintPath>$(QuickLookDir)\QuickLook.Plugin\QuickLook.Plugin.HtmlViewer\QuickLook.Plugin.HtmlViewer.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <ResourcesDir Condition="'$(ResourcesDir)' == ''">Resources</ResourcesDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 前端资源以嵌入资源形式进 DLL，安装时只需拷贝文件，不依赖目录约定 -->
+    <EmbeddedResource Include="$(ResourcesDir)\**\*">
+      <LogicalName>QuickLook.Plugin.TeXViewer.Resources.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 多语言文件必须是 DLL 旁边的实体文件（框架运行时按路径读取） -->
+    <None Update="Translations.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

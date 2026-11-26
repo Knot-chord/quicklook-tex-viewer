@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    本地宿主测试程序（不属于发布产物）
+    目的：不启动 QuickLook 也能用真实 WebView2 跑一遍 TeXPanel，
+         验证 file://quicklook/ 虚拟主机、资源拦截、postMessage 投递链路。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>TeXViewerHarness</AssemblyName>
+    <RootNamespace>TeXViewerHarness</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 编译期引用已构建的插件 DLL；运行期由脚本把整目录拷过来 -->
+    <Reference Include="QuickLook.Plugin.TeXViewer">
+      <HintPath>$(PluginDll)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="QuickLook.Common">
+      <HintPath>$(QuickLookCommonDll)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="QuickLook.Plugin.HtmlViewer">
+      <HintPath>$(HtmlViewerDll)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- 裸控件探针模式需要直接用 WebView2 控件，与插件共用同一份 DLL -->
+    <Reference Include="Microsoft.Web.WebView2.Core">
+      <HintPath>$(PluginDir)\Microsoft.Web.WebView2.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.Web.WebView2.Wpf">
+      <HintPath>$(PluginDir)\Microsoft.Web.WebView2.Wpf.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+</Project>
